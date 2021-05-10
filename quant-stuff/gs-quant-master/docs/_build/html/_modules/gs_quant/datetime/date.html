@@ -1,0 +1,434 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>gs_quant.datetime.date &mdash; gs_quant 0.1 documentation</title>
+  
+
+    
+  <script crossorigin src="/resources/react/16-8-6/prod/react.production.min.js"></script>
+  <script
+    crossorigin src="/resources/react/16-8-6/prod/react-dom.production.min.js"></script>
+
+     
+    <script src='/resources/mathjax/latest.js?config=TeX-AMS-MML_HTMLorMML' async></script> 
+    
+    <script type="text/javascript" src="../../../_static/../../../auto-mount.js"></script>
+    <link rel="stylesheet" href="../../../_static/../../../auto-mount.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" /> 
+</head>
+
+<!-- Hello from the future. -->
+<div id="mq-doc-navbar-inject"></div>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    <a data-toggle="wy-nav-top" id="gs-developer-action-button-container" ontouchstart="">
+      <div data-toggle="gs-nav-action" id="gs-nav-action"></div>
+    </a>
+    
+    <nav id="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Packages</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../data.html">Data Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../datetime.html">Datetime Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../instrument.html">Instrument Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../markets.html">Markets Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../models.html">Models Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../risk.html">Risk Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../timeseries.html">Timeseries Package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Packages</a> /</li>
+        
+          <li><a href="../../index.html">Module code</a> /</li>
+        
+      <li>gs_quant.datetime.date</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for gs_quant.datetime.date</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright 2019 Goldman Sachs.</span>
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
+
+<span class="sd">  http://www.apache.org/licenses/LICENSE-2.0</span>
+
+<span class="sd">Unless required by applicable law or agreed to in writing,</span>
+<span class="sd">software distributed under the License is distributed on an</span>
+<span class="sd">&quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY</span>
+<span class="sd">KIND, either express or implied.  See the License for the</span>
+<span class="sd">specific language governing permissions and limitations</span>
+<span class="sd">under the License.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">datetime</span> <span class="k">as</span> <span class="nn">dt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">calendar</span> <span class="k">as</span> <span class="nn">cal</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span><span class="p">,</span> <span class="n">IntEnum</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">gs_quant.datetime.gscalendar</span> <span class="kn">import</span> <span class="n">GsCalendar</span>
+
+<span class="n">DateOrDates</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">]]</span>
+
+
+<span class="k">class</span> <span class="nc">PaymentFrequency</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Payment frequency enumeration</span>
+
+<span class="sd">    Provides an enumeration of different payment frequencies used to to discount cashflows and accrue interest</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">DAILY</span> <span class="o">=</span> <span class="mi">252</span>
+    <span class="n">WEEKLY</span> <span class="o">=</span> <span class="mi">52</span>
+    <span class="n">SEMI_MONTHLY</span> <span class="o">=</span> <span class="mi">26</span>
+    <span class="n">MONTHLY</span> <span class="o">=</span> <span class="mi">12</span>
+    <span class="n">SEMI_QUARTERLY</span> <span class="o">=</span> <span class="mi">6</span>
+    <span class="n">QUARTERLY</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">TRI_ANNUALLY</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">SEMI_ANNUALLY</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">ANNUALLY</span> <span class="o">=</span> <span class="mi">1</span>
+
+
+<span class="k">class</span> <span class="nc">DayCountConvention</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Day Count Convention enumeration</span>
+
+<span class="sd">    Provides an enumeration of different day count conventions for determining how interest accrues over payment periods</span>
+<span class="sd">    for financial securities</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Actual/360: Number of days between dates divided by 360</span>
+    <span class="n">ACTUAL_360</span> <span class="o">=</span> <span class="s2">&quot;ACTUAL_360&quot;</span>
+
+    <span class="c1"># Actual/364: Number of days between dates divided by 364</span>
+    <span class="n">ACTUAL_364</span> <span class="o">=</span> <span class="s2">&quot;ACTUAL_364&quot;</span>
+
+    <span class="c1"># Actual/365_25: Number of days between dates divided by 365.25</span>
+    <span class="n">ACTUAL_365_25</span> <span class="o">=</span> <span class="s2">&quot;ACTUAL_365_25&quot;</span>
+
+    <span class="c1"># Actual/365 FIXED: Number of days between dates divided by 365</span>
+    <span class="n">ACTUAL_365F</span> <span class="o">=</span> <span class="s2">&quot;ACTUAL_365F&quot;</span>
+
+    <span class="c1"># Actual/365 LEAP: Number of days between dates divided by 365 or 366 in leap years</span>
+    <span class="n">ACTUAL_365L</span> <span class="o">=</span> <span class="s2">&quot;ACTUAL_365L&quot;</span>
+
+    <span class="c1"># ONE_ONE: Always returns a day count fraction of 1</span>
+    <span class="n">ONE_ONE</span> <span class="o">=</span> <span class="s2">&quot;ONE_ONE&quot;</span>
+
+
+<div class="viewcode-block" id="is_business_day"><a class="viewcode-back" href="../../../functions/gs_quant.datetime.date.is_business_day.html#gs_quant.datetime.date.is_business_day">[docs]</a><span class="k">def</span> <span class="nf">is_business_day</span><span class="p">(</span><span class="n">dates</span><span class="p">:</span> <span class="n">DateOrDates</span><span class="p">,</span> <span class="n">calendars</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(),</span> <span class="n">week_mask</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>\
+        <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Determine whether each date in dates is a business day</span>
+
+<span class="sd">    :param dates: The input date or dates</span>
+<span class="sd">    :param calendars: Calendars to use for holidays</span>
+<span class="sd">    :param week_mask: Which days are considered weekends (defaults to Saturday and Sunday)</span>
+<span class="sd">    :return: True/False if dates is a single date. A tuple indicating True/False for each date if dates is an iterable</span>
+
+<span class="sd">    **Examples**</span>
+
+<span class="sd">    &gt;&gt;&gt; import datetime as dt</span>
+<span class="sd">    &gt;&gt;&gt; is_business_day(dt.date.today())</span>
+<span class="sd">    &gt;&gt;&gt; is_business_day(dt.date(2019, 7, 4), calendars=(&#39;NYSE&#39;,))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">calendar</span> <span class="o">=</span> <span class="n">GsCalendar</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">calendars</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">is_busday</span><span class="p">(</span><span class="n">dates</span><span class="p">,</span> <span class="n">busdaycal</span><span class="o">=</span><span class="n">calendar</span><span class="o">.</span><span class="n">business_day_calendar</span><span class="p">(</span><span class="n">week_mask</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="k">else</span> <span class="n">res</span></div>
+
+
+<div class="viewcode-block" id="business_day_offset"><a class="viewcode-back" href="../../../functions/gs_quant.datetime.date.business_day_offset.html#gs_quant.datetime.date.business_day_offset">[docs]</a><span class="k">def</span> <span class="nf">business_day_offset</span><span class="p">(</span>
+        <span class="n">dates</span><span class="p">:</span> <span class="n">DateOrDates</span><span class="p">,</span> <span class="n">offsets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span>
+        <span class="n">roll</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="n">calendars</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(),</span>
+        <span class="n">week_mask</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DateOrDates</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Apply offsets to the dates and move to the nearest business date</span>
+
+<span class="sd">    :param dates: The input date or dates</span>
+<span class="sd">    :param offsets: The number of days by which to adjust the dates</span>
+<span class="sd">    :param roll: Which direction to roll, in order to get to the nearest business date</span>
+<span class="sd">    :param calendars: Calendars to use for holidays</span>
+<span class="sd">    :param week_mask: Which days are considered weekends (defaults to Saturday and Sunday)</span>
+<span class="sd">    :return: A date (if dates is a single date) or tuple of dates, adjusted by the offsets</span>
+
+<span class="sd">    **Examples**</span>
+
+<span class="sd">    &gt;&gt;&gt; import datetime as dt</span>
+<span class="sd">    &gt;&gt;&gt; prev_bus_date = business_day_offset(dt.date.today(), -1, roll=&#39;forward&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">calendar</span> <span class="o">=</span> <span class="n">GsCalendar</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">calendars</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">busday_offset</span><span class="p">(</span><span class="n">dates</span><span class="p">,</span> <span class="n">offsets</span><span class="p">,</span> <span class="n">roll</span><span class="p">,</span> <span class="n">busdaycal</span><span class="o">=</span><span class="n">calendar</span><span class="o">.</span><span class="n">business_day_calendar</span><span class="p">(</span><span class="n">week_mask</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="k">else</span> <span class="n">res</span></div>
+
+
+<div class="viewcode-block" id="prev_business_date"><a class="viewcode-back" href="../../../functions/gs_quant.datetime.date.prev_business_date.html#gs_quant.datetime.date.prev_business_date">[docs]</a><span class="k">def</span> <span class="nf">prev_business_date</span><span class="p">(</span>
+        <span class="n">dates</span><span class="p">:</span> <span class="n">DateOrDates</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">(),</span>
+        <span class="n">calendars</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(),</span>
+        <span class="n">week_mask</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DateOrDates</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the previous business date for a given date or date series, defaulting to today.</span>
+
+<span class="sd">    :param dates: The input date or dates, defaults to today</span>
+<span class="sd">    :param calendars: Calendars to use for holidays</span>
+<span class="sd">    :param week_mask: Which days are considered weekends (defaults to Saturday and Sunday)</span>
+<span class="sd">    :return: A date (if dates is a single date) or tuple of dates, adjusted by the offset of one day.</span>
+
+<span class="sd">    **Example**</span>
+
+<span class="sd">    &gt;&gt;&gt; import datetime as dt</span>
+<span class="sd">    &gt;&gt;&gt; prev_bus_date = prev_business_date()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">business_day_offset</span><span class="p">(</span><span class="n">dates</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">roll</span><span class="o">=</span><span class="s1">&#39;forward&#39;</span><span class="p">,</span> <span class="n">calendars</span><span class="o">=</span><span class="n">calendars</span><span class="p">,</span> <span class="n">week_mask</span><span class="o">=</span><span class="n">week_mask</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="business_day_count"><a class="viewcode-back" href="../../../functions/gs_quant.datetime.date.business_day_count.html#gs_quant.datetime.date.business_day_count">[docs]</a><span class="k">def</span> <span class="nf">business_day_count</span><span class="p">(</span><span class="n">begin_dates</span><span class="p">:</span> <span class="n">DateOrDates</span><span class="p">,</span> <span class="n">end_dates</span><span class="p">:</span> <span class="n">DateOrDates</span><span class="p">,</span> <span class="n">calendars</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span>
+<span class="p">),</span> <span class="n">week_mask</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Determine the number of business days between begin_dates and end_dates</span>
+
+<span class="sd">    :param begin_dates: A date or collection of beginning dates</span>
+<span class="sd">    :param end_dates: A date or collection of end dates</span>
+<span class="sd">    :param calendars: Calendars to use for holidays</span>
+<span class="sd">    :param week_mask: Which days are considered weekends (defaults to Saturday and Sunday)</span>
+<span class="sd">    :return: An int or tuple of ints, representing the number of business days between begin_dates and end_dates</span>
+
+<span class="sd">    **Examples**</span>
+
+<span class="sd">    &gt;&gt;&gt; import datetime as dt</span>
+<span class="sd">    &gt;&gt;&gt; today = dt.date.today()</span>
+<span class="sd">    &gt;&gt;&gt; bus_days = business_day_count(today, today + dt.timedelta(days=7))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">calendar</span> <span class="o">=</span> <span class="n">GsCalendar</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">calendars</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">busday_count</span><span class="p">(</span><span class="n">begin_dates</span><span class="p">,</span> <span class="n">end_dates</span><span class="p">,</span> <span class="n">busdaycal</span><span class="o">=</span><span class="n">calendar</span><span class="o">.</span><span class="n">business_day_calendar</span><span class="p">(</span><span class="n">week_mask</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="k">else</span> <span class="n">res</span></div>
+
+
+<div class="viewcode-block" id="date_range"><a class="viewcode-back" href="../../../functions/gs_quant.datetime.date.date_range.html#gs_quant.datetime.date.date_range">[docs]</a><span class="k">def</span> <span class="nf">date_range</span><span class="p">(</span><span class="n">begin</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">],</span>
+               <span class="n">end</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">],</span>
+               <span class="n">calendars</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(),</span>
+               <span class="n">week_mask</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Construct a range of dates</span>
+
+<span class="sd">    :param begin: Beginning date or int. An int will be interpreted as the number of business days before end</span>
+<span class="sd">        (which must be a date)</span>
+<span class="sd">    :param end: End date or int. An int will be interpreted as the number of business days after begin</span>
+<span class="sd">        (which must be a date)</span>
+<span class="sd">    :param calendars: Calendars to use for holidays</span>
+<span class="sd">    :param week_mask: Which days are considered weekends (defaults to Saturday and Sunday)</span>
+<span class="sd">    :return: A generator of dates</span>
+
+<span class="sd">    &gt;&gt;&gt; import datetime as dt</span>
+<span class="sd">    &gt;&gt;&gt; today = dt.date.today()</span>
+<span class="sd">    &gt;&gt;&gt; dates = tuple(date_range(5, today))</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; for date in date_range(dt.date(2019, 1, 1), dt.date(2019, 2, 1)):</span>
+<span class="sd">    &gt;&gt;&gt;     print(date)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">begin</span><span class="p">,</span> <span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">end</span><span class="p">,</span> <span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">):</span>
+            <span class="k">def</span> <span class="nf">f</span><span class="p">():</span>
+                <span class="n">prev</span> <span class="o">=</span> <span class="n">begin</span>
+                <span class="k">if</span> <span class="n">prev</span> <span class="o">&gt;</span> <span class="n">end</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;begin must be &lt;= end&#39;</span><span class="p">)</span>
+
+                <span class="k">while</span> <span class="n">prev</span> <span class="o">&lt;=</span> <span class="n">end</span><span class="p">:</span>
+                    <span class="k">yield</span> <span class="n">prev</span>
+                    <span class="n">prev</span> <span class="o">=</span> <span class="n">business_day_offset</span><span class="p">(</span><span class="n">prev</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">calendars</span><span class="o">=</span><span class="n">calendars</span><span class="p">,</span> <span class="n">week_mask</span><span class="o">=</span><span class="n">week_mask</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="p">(</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">f</span><span class="p">())</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">end</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">business_day_offset</span><span class="p">(</span><span class="n">begin</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">calendars</span><span class="o">=</span><span class="n">calendars</span><span class="p">,</span> <span class="n">week_mask</span><span class="o">=</span><span class="n">week_mask</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">end</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;end must be a date or int&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">begin</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">end</span><span class="p">,</span> <span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">business_day_offset</span><span class="p">(</span><span class="n">end</span><span class="p">,</span> <span class="o">-</span><span class="n">i</span><span class="p">,</span> <span class="n">roll</span><span class="o">=</span><span class="s1">&#39;preceding&#39;</span><span class="p">,</span> <span class="n">calendars</span><span class="o">=</span><span class="n">calendars</span><span class="p">,</span> <span class="n">week_mask</span><span class="o">=</span><span class="n">week_mask</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">begin</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;end must be a date if begin is an int&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;begin must be a date or int&#39;</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">has_feb_29</span><span class="p">(</span><span class="n">start</span><span class="p">:</span> <span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Determine if date range has a leap day (29Feb)</span>
+
+<span class="sd">    :param start: first date</span>
+<span class="sd">    :param end: second date</span>
+
+<span class="sd">    **Usage**</span>
+
+<span class="sd">    Determine if a given date range contains a leap day (Feb 29). Used for various day count convention calculations</span>
+<span class="sd">    which alter behaviour for leap years. Start date is exclusive and end date is inclusive</span>
+
+<span class="sd">    **Examples**</span>
+
+<span class="sd">    Determine if a given date range contains 29Feb</span>
+
+<span class="sd">    &gt;&gt;&gt; start = date(2020, 1, 1)</span>
+<span class="sd">    &gt;&gt;&gt; end = date(2020, 3, 15)</span>
+<span class="sd">    &gt;&gt;&gt; has_feb_29(start, end)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">feb_29</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span><span class="o">.</span><span class="n">days</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">date</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">dt</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">feb_29</span> <span class="o">=</span> <span class="n">feb_29</span> <span class="o">|</span> <span class="p">(</span><span class="n">date</span><span class="o">.</span><span class="n">month</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">date</span><span class="o">.</span><span class="n">day</span> <span class="o">==</span> <span class="mi">29</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">feb_29</span>
+
+
+<span class="k">def</span> <span class="nf">day_count_fraction</span><span class="p">(</span>
+        <span class="n">start</span><span class="p">:</span> <span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">,</span>         <span class="c1"># First payment date</span>
+        <span class="n">end</span><span class="p">:</span> <span class="n">dt</span><span class="o">.</span><span class="n">date</span><span class="p">,</span>           <span class="c1"># Second payment date</span>
+        <span class="n">convention</span><span class="p">:</span> <span class="n">DayCountConvention</span> <span class="o">=</span> <span class="n">DayCountConvention</span><span class="o">.</span><span class="n">ACTUAL_360</span><span class="p">,</span>
+        <span class="n">frequency</span><span class="p">:</span> <span class="n">PaymentFrequency</span> <span class="o">=</span> <span class="n">PaymentFrequency</span><span class="o">.</span><span class="n">MONTHLY</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute day count fraction between dates</span>
+
+<span class="sd">    :param start: first date</span>
+<span class="sd">    :param end: second date</span>
+<span class="sd">    :param convention: day count convention</span>
+<span class="sd">    :param frequency: payment frequency of instrument</span>
+<span class="sd">    :return: day count fraction between dates per convention</span>
+
+<span class="sd">    **Usage**</span>
+
+<span class="sd">    Compute day count fraction between dates, based on the value of *convention*. For more information on the available</span>
+<span class="sd">    day count conventions, see the</span>
+<span class="sd">    `Day Count Conventions &lt;https://developer.gs.com/docs/gsquant/guides/Dates/1-day-count-conventions&gt;`_ guide.</span>
+
+<span class="sd">    **Examples**</span>
+
+<span class="sd">    Compute day count fraction between two dates using Actual/360 convention:</span>
+
+<span class="sd">    &gt;&gt;&gt; start = date(2015, 11, 12)</span>
+<span class="sd">    &gt;&gt;&gt; end = date(2017, 12, 15)</span>
+<span class="sd">    &gt;&gt;&gt; day_count_fraction(start, end, DayCountConvention.ACTUAL_360)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">convention</span> <span class="o">==</span> <span class="n">DayCountConvention</span><span class="o">.</span><span class="n">ACTUAL_360</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span><span class="o">.</span><span class="n">days</span> <span class="o">/</span> <span class="mi">360</span>
+    <span class="k">elif</span> <span class="n">convention</span> <span class="o">==</span> <span class="n">DayCountConvention</span><span class="o">.</span><span class="n">ACTUAL_364</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span><span class="o">.</span><span class="n">days</span> <span class="o">/</span> <span class="mi">364</span>
+    <span class="k">elif</span> <span class="n">convention</span> <span class="o">==</span> <span class="n">DayCountConvention</span><span class="o">.</span><span class="n">ACTUAL_365F</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span><span class="o">.</span><span class="n">days</span> <span class="o">/</span> <span class="mi">365</span>
+    <span class="k">elif</span> <span class="n">convention</span> <span class="o">==</span> <span class="n">DayCountConvention</span><span class="o">.</span><span class="n">ACTUAL_365L</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">frequency</span> <span class="o">==</span> <span class="n">PaymentFrequency</span><span class="o">.</span><span class="n">ANNUALLY</span><span class="p">:</span>
+            <span class="n">days_in_year</span> <span class="o">=</span> <span class="mi">366</span> <span class="k">if</span> <span class="n">has_feb_29</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span> <span class="k">else</span> <span class="mi">365</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">days_in_year</span> <span class="o">=</span> <span class="mi">366</span> <span class="k">if</span> <span class="n">cal</span><span class="o">.</span><span class="n">isleap</span><span class="p">(</span><span class="n">end</span><span class="o">.</span><span class="n">year</span><span class="p">)</span> <span class="k">else</span> <span class="mi">365</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span><span class="o">.</span><span class="n">days</span> <span class="o">/</span> <span class="n">days_in_year</span>
+    <span class="k">elif</span> <span class="n">convention</span> <span class="o">==</span> <span class="n">DayCountConvention</span><span class="o">.</span><span class="n">ACTUAL_365_25</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span><span class="o">.</span><span class="n">days</span> <span class="o">/</span> <span class="mf">365.25</span>
+    <span class="k">elif</span> <span class="n">convention</span> <span class="o">==</span> <span class="n">DayCountConvention</span><span class="o">.</span><span class="n">ONE_ONE</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown day count convention: &#39;</span> <span class="o">+</span> <span class="n">convention</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  <hr />
+  
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  
+  
+    
+   
+
+</body>
+</html>
