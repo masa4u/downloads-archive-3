@@ -1,0 +1,51 @@
+<footer>
+  <hr />
+  {% if (theme_prev_next_buttons_location == 'bottom' or
+  theme_prev_next_buttons_location == 'both') and (next or prev) %}
+  <div
+    class="container-block-module"
+    role="navigation"
+    aria-label="footer navigation"
+  >
+    {% if prev %}
+    <div class="link-block-module">
+      <a
+        href="{{ prev.link | e }}"
+        class="link-block-module-container"
+        title="{{ prev.title | striptags | e }}"
+        accesskey="p"
+        rel="prev"
+      >
+        <div class="link-block-module-content">
+          <h4 class="link-block-module-title-label">
+            {{ _("Previous Topic") }}
+          </h4>
+          <p class="link-block-module-body-label">
+            {{ prev.title }}
+          </p>
+        </div>
+      </a>
+    </div>
+    {% endif %} {% if next %}
+    <div class="link-block-module">
+      <a
+        href="{{ next.link | e }}"
+        class="link-block-module-container"
+        title="{{ next.title | striptags | e }}"
+        accesskey="n"
+        rel="next"
+      >
+        <div class="link-block-module-content">
+          <h4 class="link-block-module-title-label">
+            {{ _("Next Topic") }}
+          </h4>
+          <p class="link-block-module-body-label">
+            {{ next.title }}
+          </p>
+        </div>
+      </a>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+</footer>
