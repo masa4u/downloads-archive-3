@@ -1,0 +1,39 @@
+<p>
+  The Vega is the rate of change in the value of the option with respect to the volatility of the underlying asset.
+</p>
+<p>
+  Vega is always positive for long positions and is the same value for both puts and calls. Hence the option price always increases as the volatility increases. Vega for the European options:
+</p>
+\[vega(call)=vega(put)=S\sqrt{(T-t)}N^{'}(d_1)e^{-q(T-t)}\]
+<div class="section-example-container">
+
+<pre class="python">def vega(self):
+    d1 = self.d1()
+    dn1 = self.dn(d1)
+    return self.s * sqrt(self.T) * dn1 * exp(-self.q * self.T)
+</pre>
+</div>
+
+<div class="section-example-container">
+
+<pre class="python">z = vega
+norm = matplotlib.colors.Normalize()
+fig = plt.figure(figsize=(20,11))
+ax = fig.add_subplot(111, projection='3d')
+ax.view_init(20,45)
+ax.plot_wireframe(s, T, z, rstride=1, cstride=1)
+ax.plot_surface(s, T, z, facecolors=cm.jet(norm(z)),linewidth=0.001, rstride=1, cstride=1, alpha = 0.9)
+ax.set_zlim3d(z.min(), z.max())
+ax.set_xlabel('stock price')
+ax.set_ylabel('Time to Expiration')
+ax.set_zlabel('vega')
+m = cm.ScalarMappable(cmap=cm.jet)
+m.set_array(z)
+cbar = plt.colorbar(m)
+</pre>
+</div>
+
+<img class="img-responsive" src="https://cdn.quantconnect.com/tutorials/i/Tutorial05-vega.png" alt="The Greeks letters: vega" />
+<p>
+  The color of the graph above represents Vega.
+</p>

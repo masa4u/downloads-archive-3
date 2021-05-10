@@ -1,0 +1,37 @@
+<p>
+  Gamma is the rate of change of the portfolio's delta with respect to the underlying asset's price. It represents the second-order sensitivity of the option to a movement in the underlying asset’s price.
+</p>
+<p>
+  Long options, either calls or puts, always yield positive Gamma. Gamma is higher for options that are at-the-money and closer to expiration because the Delta of the near term options move toward either 0 or 1.00 is imminent. Deeper-in-the-money or farther-out-of-the-money options have lower Gamma as their Deltas already approached 0 or 1.00 (or 0 or -1.00 for puts) and will not change as quickly with movement in the underlying. For European options:
+</p>
+\[gamma(call)=gamma(put)=\frac{N^{'}(d_1)e^{-q(T-t)}}{S\sigma\sqrt{(T-t)}}\]
+<div class="section-example-container">
+
+<pre class="python">def gamma(self):
+    d1 = self.d1()
+    dn1 = self.dn(d1)
+    return dn1 * exp(-self.q * self.T) / (self.s * self.sigma * sqrt(self.T))
+</pre>
+</div>
+
+<div class="section-example-container">
+
+<pre class="python">z = gamma
+fig = plt.figure(figsize=(20,11))
+ax = fig.add_subplot(111, projection='3d')
+ax.view_init(12,320)
+ax.plot_wireframe(s, T, z, rstride=1, cstride=1)
+ax.plot_surface(s, T, z, facecolors=cm.jet(delta),linewidth=0.001, rstride=1, cstride=1, alpha = 0.75)
+ax.set_zlim3d(0, z.max())
+ax.set_xlabel('stock price')
+ax.set_ylabel('Time to Expiration')
+ax.set_zlabel('gamma')
+m = cm.ScalarMappable(cmap=cm.jet)
+m.set_array(delta)
+cbar = plt.colorbar(m)
+</pre>
+</div>
+<img class="img-responsive" src="https://cdn.quantconnect.com/tutorials/i/Tutorial05-gamma.png" alt="The Greeks letters: gamma" />
+<p>
+  The color of the graph above represents delta value.
+</p>

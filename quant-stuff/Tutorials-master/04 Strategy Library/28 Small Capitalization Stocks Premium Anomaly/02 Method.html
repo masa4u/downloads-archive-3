@@ -1,0 +1,21 @@
+<p>
+  The first step is coarse universe selection. We create an investment universe with stocks that have fundmental data and with a price greater than $5.
+</p>
+<div class="section-example-container">
+<pre class="python">return [x.Symbol for x in coarse if x.HasFundamentalData and x.Price > 5]
+</pre>
+</div>
+<p>In fine universe selection, we sort the stocks in the universe by the market capitalization and choose 10 stocks with the lowest market cap.
+</p>
+<div class="section-example-container">
+<pre class="python">def FineSelectionFunction(self, fine):
+    ''' Selects the stocks by lowest market cap '''
+    sorted_market_cap = sorted([x for x in fine if x.MarketCap > 0],
+        key=lambda x: x.MarketCap)
+
+    return [x.Symbol for x in sorted_market_cap[:self.count]]
+</pre>
+</div>
+<p>
+   In <code>OnData()</code>, we buy 10 stocks in the list of lowest market-cap. The portfolio is rebalanced every year.
+</p>

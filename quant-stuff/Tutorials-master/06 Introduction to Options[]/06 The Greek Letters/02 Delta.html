@@ -1,0 +1,81 @@
+<h4>Definition</h4>
+<p>
+  Delta is the rate of change of the option price with respect to the price of the underlying asset. It measures the first-order sensitivity of the price to a movement in stock price S. The option delta is 0.4 means that if the underlying moves by for example 1%, then the value of the option will move by 0.4 × 1%. For European options on an asset that provides a yield at rate q:
+</p>
+\[delta(call)=\frac{\partial c}{\partial S}=e^{-q(T-t)}N(d1)\]
+\[delta(put)=\frac{\partial p}{\partial S}=e^{-q(T-t)}(N(d1)-1)\]
+<div class="section-example-container">
+
+<pre class="python">''' Greek letters for European options on an asset that provides a yield at rate q '''
+def delta(self):
+    d1 = self.d1()
+    if self.type == "c":
+        return exp(-self.q * self.T) * self.n(d1)
+    elif self.type == "p":
+        return exp(-self.q * self.T) * (self.n(d1)-1)
+</pre>
+</div>
+<h4>Impact Factors</h4>
+<p>
+  Stock price, days remaining to expiration and implied volatility will impact the Delta.
+</p>
+<ul>
+ 	<li><strong>Stock Price: </strong>Call option has a positive Delta range from 0 to 1. The Delta is positively correlated to underlying stock price change. While put option has a negative Delta ranges from -1 to 0, its Delta is negatively correlated with the underlying stock price change. At-the-money call options usually have a Delta near .50. At-the-money put options have a Delta near -.50.</li>
+ 	<li><strong>Implied Volatility:</strong> Low implied volatility stocks will tend to have higher Delta for the in-the-money options and lower Delta for out-of-the-money options.</li>
+ 	<li><strong>Days remaining to expiration:</strong> As expiration nears, in-the-money call Deltas increase toward 1.00, at-the-money call Deltas remain at around 0.5 and out-of-the-money call Deltas fall to 0 provided other inputs remain constant.</li>
+</ul>
+<p>
+  As a general rule, in-the-money options will move more than out-of-the-money options, and short-term options will react more than longer-term options to the same price change in the stock.
+</p>
+<p>
+  In order to demonstrate how those Greeks values change with the time to expiration and the underlying price, we choose 60*23 call options contracts with the stock price ranging from 10 to 70, time to expiration ranging from 0 to 1 year. The strikes of all the contracts are 40,  the interest rates are 0.1, the volatilities are all 0.5. We construct the contracts data as a 23*60 matrix.
+</p>
+<div class="section-example-container">
+
+<pre class="python">s = np.array([range(10,70,1) for i in range(23)])
+I = np.ones((shape(s)))
+time = arange(1,12.5,0.5)/12
+T = np.array([ele for ele in time for i in range(shape(s)[1])]).reshape(shape(s))
+
+contracts = []
+for i in range(shape(s)[0]):
+    for j in range(shape(s)[1]):
+        contracts.append(BsmModel('c',s[i,j],40*I[i,j],0.1*I[i,j], T[i,j],0.5*I[i,j]))
+delta = [x.theta() for x in contracts]
+gamma = [x.gamma() for x in contracts]
+delta = [x.delta() for x in contracts]
+vega = [x.vega() for x in contracts]
+rho = [x.rho() for x in contracts]
+
+gamma = np.array(gamma).reshape(shape(s))
+delta = np.array(delta).reshape(shape(s))
+theta = np.array(theta).reshape(shape(s))
+vega = np.array(vega).reshape(shape(s))
+rho = np.array(rho).reshape(shape(s))
+
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
+from matplotlib import animation
+
+z = delta
+fig = plt.figure(figsize=(20,11))
+ax = fig.add_subplot(111, projection='3d')
+ax.view_init(40,290)
+ax.plot_wireframe(s, T, z, rstride=1, cstride=1)
+ax.plot_surface(s, T, z, facecolors=cm.jet(delta),linewidth=0.001, rstride=1, cstride=1, alpha = 0.75)
+ax.set_zlim3d(0, z.max())
+ax.set_xlabel('stock price')
+ax.set_ylabel('Time to Expiration')
+ax.set_zlabel('delta')
+m = cm.ScalarMappable(cmap=cm.jet)
+m.set_array(z)
+cbar = plt.colorbar(m)
+</pre>
+</div>
+<img class="img-responsive" src="https://cdn.quantconnect.com/tutorials/i/Tutorial05-delta.png" alt="Greeks letter: delta" />
+
+<p>
+  The color of the graph above represents delta value.
+</>

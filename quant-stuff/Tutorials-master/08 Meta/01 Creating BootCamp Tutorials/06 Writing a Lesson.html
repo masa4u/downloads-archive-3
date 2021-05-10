@@ -1,0 +1,119 @@
+<p>
+Writing a BootCamp lesson starts by carefully writing out the complete code for the strategy, breaking it into tasks, and write small text summaries for each task with the documentation required to teach the reader how to complete the task. Finally, JavaScript is used to read the exhaust output of the algorithm to validate it achieved the required objective.
+</p>
+
+<style> 
+.arrow-steps {
+margin: 20px 0px;
+}
+.arrow-steps .step {
+	font-size: 14px;
+	text-align: center;
+	color: #666;
+	cursor: default;
+	margin: 0 3px;
+	padding: 6px 10px 6px 20px;
+	min-width: 145px;
+	float: left;
+	position: relative;
+	background-color: #d9e3f7;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;  
+}
+
+.arrow-steps .step:after,
+.arrow-steps .step:before {
+	content: " ";
+	position: absolute;
+	top: 0;
+	right: -17px;
+	width: 0;
+	height: 0;
+	border-top: 17px solid transparent;
+	border-bottom: 17px solid transparent;
+	border-left: 17px solid #d9e3f7;	
+	z-index: 2; 
+}
+
+.arrow-steps .step:before {
+	right: auto;
+	left: 0;
+	border-left: 17px solid #fff;	
+	z-index: 0;
+}
+
+.arrow-steps .step:first-child:before {
+	border: none;
+}
+
+.arrow-steps .step:first-child {
+	border-top-left-radius: 4px;
+	border-bottom-left-radius: 4px;
+}
+</style>	
+<div class="arrow-steps clearfix">
+  <div class="step"><span>Lesson Algorithm</span></div>
+  <div class="step"><span>Task Guides</span></div>
+  <div class="step"><span>Validators</span></div>
+  <div class="step"><span>Hints, Solutions</span></div>
+  <div class="step"><span>Submit</span></div>
+</div>
+
+<h4>1. Write Lesson Algorithm</h4>
+<p>
+Writing a BootCamp lesson starts by carefully writing out the complete code for the strategy. This should be drafted as simply as possible to ensure each task the student needs to complete will only be 2-5 lines of code. 
+<p>
+Readability is critical and the code should be well commented with descriptive variable names. Depending on the complexity of the algorithm sometimes its more readable to use string tickers instead of class variables.
+</p>
+<p>
+Carefully write code in a way which neatly separates the algorithm concepts as much as possible. Keep in mind the algorithm will be implemented in separate tasks by the student. 
+</p>
+<div class="tip">
+  <i class="fa fa-bolt"></i><span class="tip-title">Action:</span>
+  <p>Write highly readable, concise C# and Python versions of the algorithm and request review by QuantConnect Education team. Plan ahead for divisions of the code into tasks.</p>
+</div> 
+ 
+<h4>
+2. Write Task Guides
+</h4>
+<p>
+Each task has a short write-up to explain the features needed to complete the next task of BootCamp. This write-up should assume the student has no prior knowledge and include representative code snippets demonstrating the key API code needed.
+</p>
+<table class="table">
+<thead>
+<tr><th style="width: 16%">Style</th><th>Example Code Tag</th></tr>
+</thead>
+<tbody>
+<tr>
+<td><p>Headings</p></td>
+<td><pre class="prettyprint">&lt;h4&gt;Initializaing Algorithms&lt;/h4&gt;</pre> </td>
+</tr>
+<tr>
+<td><p>Paragraphs</p></td>
+<td><pre class="prettyprint">&lt;p&gt;Setting cash is done with &lt;span class="python"&gt;self.SetCash().&lt;/span&gt;&lt;/p&gt;</pre> </td>
+</tr>
+<tr>
+<td><p>Code Snippets</p></td>
+<td><pre class="prettyprint">&lt;pre class="prettyprint python"&gt;self.SetCash()&lt;/pre&gt;</pre> </td>
+</tr>
+</tbody>
+</table>
+<p>
+For a fluent experience between lessons, all content should follow the same structure as the sections laid out below. 
+</p>
+<p>
+<img style="width: 33%; float: left; margin-right: 40px;" src="https://cdn.quantconnect.com/bootcamp/i/20190714-bootcamp-task-content-structure.png"/>
+
+Tasks start their contents divided by subtitle using the <code>h4</code> tag. Use a short title about the specific API or content you're trying to summarize. <br/><br/>
+
+After each heading, write a short paragraph concisely summarizing the content in as few words as possible. Use inline <code>&lt;code&gt;</code> blocks to highlight API syntax, and links to new tabs referencing any documentation required. <br/><br/>
+
+Any content which is specific to one programming language should be wrapped in a span tag with the language set in the class, for example: <code>&lt;span class="python"&gt;</code>.
+
+Each section should include a code snippet of documentation using a <code>&lt;pre class="prettyprint"&gt;</code> code block. <br/><br/>
+
+Finally, each task should define 2-4 objectives to achieve in the task. These tasks should guide the user on the required steps to implement the strategy step. At the end of the task, there should be a measurable output that the system can use to judge if the task is a success. This can be a state change of the algorithm, a debug/log statement, or a trade. This will be covered in the next section, <em>Code Validators</em>.
+</p>
+

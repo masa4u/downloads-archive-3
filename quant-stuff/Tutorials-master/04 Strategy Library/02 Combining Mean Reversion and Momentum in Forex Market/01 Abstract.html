@@ -1,0 +1,7 @@
+<p>
+  In this tutorial we build a strategy combining momentum and mean reversion for the foreign exchange markets from Alina F. Serban's research which was based on research in the equity market by Ronald J. Balvers and Yangru Wu. Serban creates a momentum factor using returns of the last 3 months, and a mean reversion factor as a deviation from the mean price. Using these factors we use regression to predict the returns of the coming month. We apply the strategy from Serban's paper and update the mean reversion factor for to improve its significance level.
+</p>
+
+<p>
+  In theory when trading foreign exchange the expected return accrued in each currency should be the same when adjusted for exchange rates (uncovered interest parity). This suggests the markets should predominately be mean reverting, however in practice we see short term momentum trends and long term mean reversion. This was phenomenon was first noticed by Chiang and Jiang. We tested the theory on EURUSD, GBPUSD, USDCAD and USDJPY and re-balanced monthly. The model significance level and coefficients are close to those in paper, but the returns and Sharpe Ratios obtained are not as good as what the paper claimed. The algorithm achieved a fairly stable annual return of 11%, 0.8 Sharpe Ratio and 11% drawdown.
+</p>

@@ -1,0 +1,236 @@
+<p>
+	QuantConnect为美国股市提供了晨星基本面数据。估值比率是每日数据。对于其他项目，如营业比率和财务报表，可以根据不同的属性获得不同时期的数据。详细的可用要素请参阅<a href="https://www.quantconnect.com/data#fundamentals/usa/morningstar">Data Library</a>。
+</p>
+<p>
+	该算法的设计是为了每次测试一个要素的重要性。
+</p>
+
+<div class="section-example-container">
+
+<pre class="python">def Initialize(self):
+	self.SetStartDate(2005,01,01)  # 设置开始日期
+	self.SetEndDate(2012,03,01)    # 设置结束日期
+	self.SetCash(50000)            # 设置策略现金
+	self.UniverseSettings.Resolution = Resolution.Daily
+	self.AddUniverse(self.CoarseSelectionFunction, self.FineSelectionFunction)
+	self.AddEquity("SPY") # add benchmark
+	self.numOfCourseSymbols = 200
+	self.numOfPortfolio = 5
+	self._changes = None
+	self.flag1 = 1  # 控制粗选和精选函数每月重新平衡的变量
+	self.flag2 = 0  # 控制OnData函数每月重新平衡的变量
+	self.flag3 = 0  # 记录重新平衡次数的变量
+        # 将不同投资组合的月收益存储在一个数据框架内
+	self.df_return = pd.DataFrame(index = range(self.numOfPortfolio+1))
+        # 预定事件在SPY的第一个交易日解除
+	self.Schedule.On(self.DateRules.MonthStart("SPY"), self.TimeRules.AfterMarketOpen("SPY"), Action(self.Rebalancing))
+</pre>
+</div>
+<h3>步骤1：按要素值对股票进行排序</h3>
+<p>
+	1. 首先，我们按每日美元交易量对股票进行排序，并将美元交易量最高的股票作为候选股票。有一种方便的方法使用我们的集合选择API。在默认情况下，集合每天都会刷新，但也可以根据需要经常刷新。这是由可变<code>UniverseSettings.Resolution</code>控制的。您可以参考<a href="https://www.quantconnect.com/docs#Universes">documentation</a>了解更多详细信息。在这里，我们使用<a href="https://www.quantconnect.com/docs#Scheduled-Events">Scheduled events API</a>来触发在每个月第一个交易日运行的代码，并使用三个标志变量来控制<code>CoarseSelection</code>，<code>FineSelection</code>和<code>Ondata</code>函数的重新平衡。
+</p>
+<p>
+	粗略集合选择是由QuantConnect提供的内置集合数据，它允许你对超过16,000个符号的集合进行筛选，在你的算法之前进行粗略的筛选。由于粗选功能考虑了包括基金在内的所有无基础数据股票，所以我们需要属性<code>x.HasFundamentalData</code>将这些股票排除在我们的候选股票池之外。
+</p>
+<div class="section-example-container">
+
+<pre class="python"># 按照每日美元交易量对数据进行排序，并取排名最上面的条目
+def CoarseSelectionFunction(self, coarse):
+    if self.flag1:
+        CoarseWithFundamental = [x for x in coarse if x.HasFundamentalData]
+        sortedByVolume = sorted(CoarseWithFundamental, key=lambda x: x.DollarVolume, reverse=True)
+        top = sortedByVolume[:self.numOfCourseSymbols]
+				return [i.Symbol for i in top]
+    else:
+        return []
+</pre>
+</div>
+
+<p>
+	2. 我们在每个月初提取候选股票的要素值，并按其要素值的升序对股票进行排序。例如，这里我们使用了12个月的总风险基础资本数据<code>x.FinancialStatements.TotalRiskBasedCapital.TwelveMonths</code>。它是一级资本和二级资本的总和。<code>x.Symbol.Value</code>可以给出所选股票x的串符号，然后将这些排序后的符号保存为<code>self.symbol</code>。
+</p>
+
+<div class="section-example-container">
+
+<pre class="python">def FineSelectionFunction(self, fine):
+	if self.flag1:
+		self.flag1 = 0
+		self.flag2 = 1
+		# 通过删除要素值为零的股票来进行精细筛选
+		filtered_fine = [x for x in fine if x.FinancialStatements.TotalRiskBasedCapital.TwelveMonths != 0 ]
+		# 按照要素值倒序排序
+		sorted_fine = sorted(filtered_fine, key=lambda x: x.FinancialStatements.TotalRiskBasedCapital.TwelveMonths, reverse=True)
+		self.symbol = [str(x.Symbol.Value) for x in sorted_fine]
+		# 要素值 = [x.ValuationRatios.PERatio for x in sorted_fine]
+		self.flag3 = self.flag3 + 1
+ 	 	return []
+	else:
+		return []
+</pre>
+</div>
+
+<h3>步骤2：计算投资组合的月收益</h3>
+<p>
+	1. 在每个月底，我们提取每支股票的一个月历史收盘价，并计算月收益。
+</p>
+
+<div class="section-example-container">
+
+<pre class="python">sorted_symbol = self.symbol
+self.AddEquity("SPY") # 添加基准
+for x in sorted_symbol:
+	self.AddEquity(x)
+history = self.History(20,Resolution.Daily)
+monthly_return =[]
+new_symbol_list =[]
+for j in range(len(sorted_symbol)):
+	try:
+		daily_price = []
+		for slice in history:
+			bar = slice[sorted_symbol[j]]
+			daily_price.append(float(bar.Close))
+		new_symbol_list.append(sorted_symbol[j])
+ 		monthly_return.append(daily_price[-1] / daily_price[0] - 1)
+	except:
+		self.Log("No history data for " + str(sorted_symbol[j]))
+		del daily_price
+# 月收益列表的长度应能够被投资组合的数量整除
+monthly_return = monthly_return[:int(math.floor(len(monthly_return) / self.numOfPortfolio) * self.numOfPortfolio)]
+</pre>
+</div>
+
+
+<p>
+	2. 我们将股票分为5个投资组合，计算每个投资组合的平均月收益。然后在数据框架<code>df_return</code>的最后一行添加基准“SPY”的月收益。
+</p>
+
+<div class="section-example-container">
+
+<pre class="python">reshape_return = np.reshape(monthly_return, (self.numOfPortfolio, len(monthly_return)/self.numOfPortfolio))
+# 计算不同投资组合的平均收益
+port_avg_return = np.mean(reshape_return,axis=1).tolist()
+# 将"SPY"的收益作为基准添加到收益列表的末尾
+benchmark_syl = self.AddEquity("SPY").Symbol
+history_benchmark = self.History(20,Resolution.Daily)
+benchmark_daily_price = [float(slice[benchmark_syl].Close) for slice in history_benchmark]
+benchmark_monthly_return = (benchmark_daily_price[-1]/benchmark_daily_price[0]) - 1
+port_avg_return.append(benchmark_monthly_return)
+self.df_return[str(self.flag3)] = port_avg_return
+</pre>
+</div>
+<h3>步骤3：生成度量来测试要素重要性</h3>
+<p>
+	在得到投资组合的月收益和基准后，我们计算了整个回溯测试期间各投资组合的年平均收益和基准之上的超额收益。然后我们生成三个度量来判断每个因素的重要性。
+</p>
+
+<ul>
+ 	<li>第一个度量是投资组合收益与其排名之间的相关性。关联系数绝对值应大于0.8。</li>
+ 	<li>如果排名第一投资组合的收益大于排名垫底的投资组合，我们将其定义为盈利投资组合和亏损投资组合，反之亦然。盈利概率是盈利投资组合收益超过基准收益的概率。亏损概率是指亏损组合收益低于基准的概率。如果要素显著，则损益概率均应大于0.4。</li>
+ 	<li>盈利投资组合的超额收益应大于0.25，亏损投资组合的超额收益应小于0.05。</li>
+</ul>
+
+<div class="section-example-container">
+
+<pre class="python">def calculate_criteria(self,df_port_return):
+	total_return = (df_port_return + 1).T.cumprod().iloc[-1,:] - 1
+	annual_return = (total_return+1)**(1./6)-1
+	excess_return = annual_return - np.array(annual_return)[-1]
+	correlation = annual_return[0:5].corr(pd.Series([5,4,3,2,1],index = annual_return[0:5].index))
+	# 高收益的高要素
+	if np.array(total_return)[0] &gt; np.array(total_return)[-2]:
+		loss_excess = df_port_return.iloc[-2,:] - df_port_return.iloc[-1,:]
+		win_excess = df_port_return.iloc[0,:] - df_port_return.iloc[-1,:]
+		loss_prob = loss_excess[loss_excess&lt;0].count()/float(len(loss_excess)) win_prob = win_excess[win_excess&gt;0].count()/float(len(win_excess))
+		win_port_excess_return = np.array(excess_return)[0]
+		loss_port_excess_return = np.array(excess_return)[-2]
+	# 低收益的高要素
+	else:
+		loss_excess = df_port_return.iloc[0,:] - df_port_return.iloc[-1,:]
+		win_excess = df_port_return.iloc[-2,:] - df_port_return.iloc[-1,:]
+		loss_prob = loss_excess[loss_excess&lt;0].count()/float(len(loss_excess)) win_prob = win_excess[win_excess&gt;0].count()/float(len(win_excess))
+		win_port_excess_return = np.array(excess_return)[-2]
+		loss_port_excess_return = np.array(excess_return)[0]
+	test_result = {}
+	test_result["correelation"]=correlation
+	test_result["win probality"]=win_prob
+	test_result["loss probality"]=loss_prob
+	test_result["win portfolio excess return"]=win_port_excess_return
+	test_result["loss portfolio excess return"]=loss_port_excess_return
+
+	return test_result</pre>
+</div>
+
+<table class="table qc-table">
+<thead>
+<tr>
+<th style="text-align: center;" colspan="8">要素显著性测试结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>要素</td>
+<td> FCFYield</td>
+<td> BuyBackYield</td>
+<td> PriceChange1M</td>
+<td>TrailingDividendYield</td>
+<td> EVToEBITDA</td>
+<td> RevenueGrowth</td>
+<td>BookValuePerShare</td>
+</tr>
+<tr>
+<td>关联性</td>
+<td> -0.936</td>
+<td> -0.987</td>
+<td> 0.918</td>
+<td> -0.981</td>
+<td> 0.939</td>
+<td>0.89</td>
+<td>-0.92</td>
+</tr>
+<tr>
+<td>盈利概率</td>
+<td>0.630</td>
+<td>0.639</td>
+<td> 1</td>
+<td> 0.667</td>
+<td> 0.722</td>
+<td> 0.69</td>
+<td>0.69</td>
+</tr>
+<tr>
+<td>亏损概率</td>
+<td> 0.426</td>
+<td>0.472</td>
+<td> 1</td>
+<td> 0.518</td>
+<td> 0.472</td>
+<td> 0.42</td>
+<td>0.40</td>
+</tr>
+<tr>
+<td>超额收益（盈利）</td>
+<td> 0.324</td>
+<td> 0.212</td>
+<td>0.303</td>
+<td> 0.225</td>
+<td> 0.414</td>
+<td> 0.23</td>
+<td> 0.27</td>
+</tr>
+<tr>
+<td>超额收益（亏损）</td>
+<td> 0.060</td>
+<td> 0.037</td>
+<td> -1.67</td>
+<td> 0.043</td>
+<td> 0.042</td>
+<td> 0.07</td>
+<td> 0.06</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+	我们选择了4个要素：FCFYield、PriceChange1M、BookValuePerShare和RevenueGrowth。
+</p>

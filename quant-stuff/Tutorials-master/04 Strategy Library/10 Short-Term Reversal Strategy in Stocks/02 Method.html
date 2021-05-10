@@ -1,0 +1,141 @@
+<p>
+  The strategy code mainly consists of four parts: Initialization, Universe Selection, OnData, and OnSecuritiesChanged.
+</p>
+
+<h3>Algorithm Initialization</h3>
+<p>
+  When initializing the algorithm, we add a coarse universe selection method and specify several parameters to use 
+  when selecting securities.
+</p>
+<div class="section-example-container">
+<pre class="python">
+class ShortTimeReversal(QCAlgorithm):
+    def Initialize(self):
+        # ...
+      
+        self.UniverseSettings.Resolution = Resolution.Daily
+        self.AddUniverse(self.SelectCoarse)
+      
+        self.dollar_volume_selection_size = 100
+        self.roc_selection_size = int(0.1 * self.dollar_volume_selection_size)
+      
+        self.lookback = 22
+        self.roc_by_symbol = {}
+        self.week = 0
+
+</pre>
+</div>
+
+
+
+<h3>Universe Selection</h3>
+<p>
+  The coarse universe selection method creates a RateOfChange 
+  <a href="https://www.quantconnect.com/docs/algorithm-reference/indicators">indicator</a> for each of the top 100 
+  most liquid securities in the market. Upon creation, the indicator is manually warmed-up with historical closing 
+  prices. After the indicators are ready, the universe selects the securities with the 10 best and 10 worst 
+  RateOfChange values.
+</p>
+<div class="section-example-container">
+<pre class="python">
+class ShortTimeReversal(QCAlgorithm):
+    # ...
+
+    def SelectCoarse(self, coarse):
+        
+        # We should keep a dictionary for all securities that have been selected
+        for cf in coarse:
+            symbol = cf.Symbol
+            if symbol in self.roc_by_symbol:
+                self.roc_by_symbol[symbol].Update(cf.EndTime, cf.AdjustedPrice)
+
+        # Refresh universe each week
+        week_number = self.Time.date().isocalendar()[1]
+        if week_number == self.week:
+            return Universe.Unchanged
+        self.week = week_number
+
+        # sort and select by dollar volume
+        sortedByDollarVolume = sorted(coarse, key=lambda x: x.DollarVolume, reverse=True)
+        selected = {cf.Symbol: cf for cf in sortedByDollarVolume[:self.dollar_volume_selection_size]} 
+        
+        # New selections need a history request to warm up the indicator
+        symbols = [k for k in selected.keys()
+            if k not in self.roc_by_symbol or not self.roc_by_symbol[k].IsReady]
+
+        if symbols:
+            history = self.History(symbols, self.lookback, Resolution.Daily)
+            if history.empty:
+                self.Log(f'No history for {", ".join([x.Value for x in symbols])}')
+            history = history.close.unstack(0)
+
+            for symbol in symbols:
+
+                if symbol not in history:
+                    continue
+
+                # Create and warm-up the RateOfChange indicator
+                roc = RateOfChange(self.lookback)
+                for time, price in history[symbol].dropna().iteritems():
+                    roc.Update(time, price)
+                
+                if roc.IsReady:
+                    self.roc_by_symbol[symbol] = roc
+        
+        # Sort the symbols by their ROC values
+        selectedRateOfChange = {}
+        for symbol in selected.keys():
+            if symbol in self.roc_by_symbol:
+                selectedRateOfChange[symbol] = self.roc_by_symbol[symbol]
+        sortedByRateOfChange = sorted(selectedRateOfChange.items(), key=lambda kv: kv[1], reverse=True)
+        
+        # Define the top and the bottom to buy and sell
+        self.rocTop = [x[0] for x in sortedByRateOfChange[:self.roc_selection_size]]
+        self.rocBottom = [x[0] for x in sortedByRateOfChange[-self.roc_selection_size:]]
+        
+        return self.rocTop + self.rocBottom
+</pre>
+</div>
+
+
+<h3>The OnData Method</h3>
+<p>
+  As new data is passed to the OnData method, we issue orders to form a long-short portfolio. We long the securities 
+  with the lowest RateOfChange values and short those with the largest values. After rebalancing, we clear the 
+  `rocTop` and `rocBottom` lists to ensure we don’t trade again until the universe is refreshed.
+</p>
+<div class="section-example-container">
+<pre class="python">
+class ShortTimeReversal(QCAlgorithm):
+    # ...
+
+    def OnData(self, data):
+        # Rebalance
+        for symbol in self.rocTop:
+            self.SetHoldings(symbol, -0.5/len(self.rocTop))
+        for symbol in self.rocBottom:
+            self.SetHoldings(symbol, 0.5/len(self.rocBottom))
+        
+        # Clear the list of securities we have placed orders for
+        # to avoid new trades before the next universe selection
+        self.rocTop.clear() 
+        self.rocBottom.clear()
+</pre>
+</div>
+
+<h3>The OnSecuritiesChanged Method</h3>
+<p>
+  We are rebalancing the portfolio on a weekly basis, but securities can leave our defined universe between rebalance 
+  days. To accommodate this, we liquidate any securities that are removed from the universe in the 
+  OnSecuritiesChanged method.
+</p>
+<div class="section-example-container">
+<pre class="python">
+class ShortTimeReversal(QCAlgorithm):
+    # ...
+
+    def OnSecuritiesChanged(self, changes):
+        for security in changes.RemovedSecurities:
+            self.Liquidate(security.Symbol, 'Removed from Universe')
+</pre>
+</div>

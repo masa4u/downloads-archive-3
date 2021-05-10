@@ -1,0 +1,49 @@
+<p>
+  Theta is the rate of change of the value of the option with respect to the passage of time. It is also referred to as the time decay of the portfolio.
+</p>
+<p>
+  The theta of  holding long position of a call or a put option is usually negative. An option that loses 0.1% per day is said to have a Theta of −0.1%. For example, if we buy an OTM call option, the value of this call option decreases as time passes since the option has less time to expiry. If time passes with the price of the underlying asset and its volatility remaining the same, the passing of time will lower the value of the option. Theta for European Options
+</p>
+\[Theta(call)=-SN^{'}(d_1)\sigma e^{-q(T-t)}/(2\sqrt{T-t})+qSN(d_1)e^{(-q(T-t))}-rKe^{-r(T-t)}N(d_2)\]
+\[Theta(put)=-SN^{'}(d_1)\sigma e^{-q(T-t)}/(2\sqrt{T-t})-qSN(-d_1)e^{(-q(T-t))}+rKe^{-r(T-t)}N(-d_2)\]
+<div class="section-example-container">
+
+<pre class="python">def theta(self):
+    d1 = self.d1()
+    d2 = d1 - self.sigma * sqrt(self.T)
+    dn1 = self.dn(d1)
+    if self.type == "c":
+        theta = -self.s * dn1 * self.sigma * exp(-self.q*self.T) / (2 * sqrt(self.T)) \
+                    + self.q * self.s * self.n(d1) * exp(-self.q*self.T) \
+                    - self.r * self.k * exp(-self.r*self.T) * self.n(d2)
+        return theta
+    elif self.type == "p":
+        theta = -self.s * dn1 * self.sigma * exp(-self.q * self.T) / (2 * sqrt(self.T)) \
+                    - self.q * self.s * self.n(-d1) * exp(-self.q * self.T) \
+                    + self.r * self.k * exp(-self.r * self.T) * self.n(-d2)
+        return theta
+</pre>
+</div>
+
+<div class="section-example-container">
+
+<pre class="python">z = theta
+# facecolors aren't normalizing as might be expected
+# we need to normalize it to avoid all dark color for value under 0
+norm = matplotlib.colors.Normalize()
+fig = plt.figure(figsize=(20,11))
+ax = fig.add_subplot(111, projection='3d')
+ax.view_init(35,300)
+ax.plot_wireframe(s, T, z, rstride=1, cstride=1)
+ax.plot_surface(s, T, z, facecolors=cm.jet(norm(z)),linewidth=0.001, rstride=1, cstride=1, alpha = 0.9)
+ax.set_zlim3d(z.min(), z.max())
+ax.set_xlabel('stock price')
+ax.set_ylabel('Time to Expiration')
+ax.set_zlabel('rho')
+m = cm.ScalarMappable(cmap=cm.jet)
+m.set_array(z)
+cbar = plt.colorbar(m)
+</pre>
+</div>
+
+<img class="img-responsive" src="https://cdn.quantconnect.com/tutorials/i/Tutorial05-theta.png" alt="The Greeks letters: theta" />

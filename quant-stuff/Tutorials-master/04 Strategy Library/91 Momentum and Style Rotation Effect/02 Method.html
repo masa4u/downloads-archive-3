@@ -1,0 +1,49 @@
+<p>
+  We choose six index ETFs to represent different equity styles(small-cap value, mid-cap value, large-cap value,
+  small-cap growth, mid-cap growth, large-cap growth). After adding the assets, we save the momentum indicator in
+  the dictionary <code>self.mom</code> for each style. The formation period of 12-month is used to gauge the value of momentum.
+</p>
+<div class="section-example-container">
+<pre class="python">
+def Initialize(self):
+
+    self.SetStartDate(2001, 1, 1)
+    self.SetEndDate(2018, 8, 1)
+    self.SetCash(100000)
+
+    tickers = ["IJJ",   # iShares S&P Mid-Cap 400 Value Index ETF
+               "IJK",   # iShares S&P Mid-Cap 400 Growth ETF
+               "IJS",   # iShares S&P Small-Cap 600 Value ETF
+               "IJT",   # iShares S&P Small-Cap 600 Growth ETF
+               "IVE",   # iShares S&P 500 Value Index ETF
+               "IVW"]   # iShares S&P 500 Growth ETF
+
+    lookback = 12*20
+
+    # Save all momentum indicator into the dictionary
+    self.mom = dict()
+    for ticker in tickers:
+        symbol = self.AddEquity(ticker, Resolution.Daily).Symbol
+        self.mom[symbol] = self.MOM(symbol, lookback)
+</pre>
+</div>
+<p>
+  Six ETFs are ranked based on their prior 12-month performance in the formation period. The algorithm
+  goes long the top performing ETF and short the ETF at the bottom and holds the position for one month.
+  The portfolio is rebalanced at the start of next month.
+</p>
+<div class="section-example-container">
+<pre class="python">
+def Rebalance(self):
+    # Order the MOM dictionary by value
+    sorted_mom = sorted(self.mom, key = lambda x: self.mom[x].Current.Value)
+
+    # Liquidate the ETFs that are no longer selected
+    for symbol in sorted_mom[1:-1]:
+        if self.Portfolio[symbol].Invested:
+            self.Liquidate(symbol, 'No longer selected')
+
+    self.SetHoldings(sorted_mom[-1], -0.5)   # Short the ETF with lowest MOM
+    self.SetHoldings(sorted_mom[0], 0.5)     # Long the ETF with highest MOM
+</pre>
+</div>

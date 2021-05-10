@@ -1,0 +1,52 @@
+<p>
+  For the cointegration pairs trading method, we choose the same ETF pair "GLD" and "DGL".  There is no need to choose a copula function so there is only a 12 month rolling formation period. The trading period is 5 years from January 2011 to  May 2017.
+</p>
+
+<h3>Step 1: Generate the Spread Series</h3>
+<p>
+  At the start of each month, we generate the log price series of two ETFs with the daily close. Then the spread series is estimated using regression analysis based on log price series data. For equities X and Y, we run linear regression over the log price series and get the coefficient β.
+</p>
+
+\[spread_t=\log(price_t^y)-\beta \log(price_t^x)\]
+
+<h3>Step 2: Compute the Signals</h3>
+
+<p>
+  Using the standard deviation of spread during the rolling formation period, a threshold of one standard deviation 
+  is set up for the trading strategy. We enter a trade whenever the spread moves more than one standard deviations 
+  away from its mean. Trades are exited when the spread reverts back to the mean trailing spread value. The position
+  sizes are scaled by the coefficient β.
+</p>
+
+<div class="section-example-container">
+
+<pre class="python">log_close_x = np.log(self.closes_by_symbol[self.x_symbol])
+log_close_y = np.log(self.closes_by_symbol[self.y_symbol])
+
+spread, beta = self.regr(log_close_x, log_close_y)
+
+mean = np.mean(spread)
+std = np.std(spread)
+
+x_holdings = self.Portfolio[self.x_symbol]
+
+if x_holdings.Invested:
+    if x_holdings.IsShort and spread[-1] <= mean or \
+        x_holdings.IsLong and spread[-1] >= mean:
+        self.Liquidate()
+else:
+    if beta < 1:
+        x_weight = 0.5
+        y_weight = 0.5 / beta
+    else:
+        x_weight = 0.5 / beta
+        y_weight = 0.5
+    
+    if spread[-1] < mean - self.threshold * std:
+        self.SetHoldings(self.y_symbol, -y_weight) 
+        self.SetHoldings(self.x_symbol, x_weight)
+    if spread[-1] > mean + self.threshold * std:
+        self.SetHoldings(self.x_symbol, -x_weight)
+        self.SetHoldings(self.y_symbol, y_weight)
+</pre>
+</div>
